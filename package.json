@@ -1,18 +1,24 @@
 {
   "name": "api_facs",
   "version": "1.0.0",
-  "description": "Criar um banco de dados para receber os dados das planilhas  e fazer uma analise das tabelas Produtos e Nota Fiscal(Criatividade do Grupo). Fazer uma apresentação para a turma.",
+  "description": "Criar um banco de dados para receber os dados das planilhas e fazer uma analise das tabelas Produtos e Nota Fiscal(Criatividade do Grupo). Fazer uma apresentação para a turma.",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
+    "csv-parser": "^3.0.0",
+    "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "pg": "^8.13.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.6"
   }
 }

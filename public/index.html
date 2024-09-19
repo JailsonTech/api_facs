@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produtos e Notas Fiscais</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Se você tiver um CSS -->
+</head>
+<body>
+    <h1>Produtos</h1>
+    <table id="produtos-table" border="1">
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Preço</th>
+            <th>Quantidade</th>
+            <th>Descrição</th>
+        </tr>
+    </table>
+
+    <h2>Adicionar Produto</h2>
+    <form id="produto-form">
+        <label for="nome">Nome:</label>
+        <input type="text" id="nome" required>
+        
+        <label for="preco">Preço:</label>
+        <input type="text" id="preco" required placeholder="10,00">
+        
+        <label for="quantidade">Quantidade:</label>
+        <input type="number" id="quantidade" required>
+        
+        <label for="descricao">Descrição:</label>
+        <textarea id="descricao"></textarea>
+        
+        <button type="submit">Adicionar Produto</button>
+    </form>
+
+    <h2>Adicionar Nota Fiscal</h2>
+    <form id="nota-fiscal-form">
+        <label for="produto_id">Produto ID:</label>
+        <input type="number" id="produto_id" required>
+        
+        <label for="data">Data:</label>
+        <input type="date" id="data" required>
+        
+        <label for="valor_total">Valor Total (use vírgula):</label>
+        <input type="text" id="valor_total" required placeholder="10,00">
+        
+        <label for="quantidade_vendida">Quantidade Vendida:</label>
+        <input type="number" id="quantidade_vendida" required>
+        
+        <button type="submit">Adicionar Nota Fiscal</button>
+    </form>
+
+    <script src="script.js"></script>  <!-- Script para produtos -->
+    <script src="nota.js"></script>    <!-- Script para notas fiscais -->
+</body>
+</html>

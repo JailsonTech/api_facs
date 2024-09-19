@@ -67,6 +67,33 @@ app.post('/produtos', async (req, res) => {
     }
 });
 
+// Rota para obter notas fiscais
+app.get('/nota-fiscal', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM nota_fiscal');
+        res.json(result.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erro ao buscar notas fiscais' });
+    }
+});
+
+// Rota para adicionar uma nota fiscal
+app.post('/nota-fiscal', async (req, res) => {
+    const { produto_id, data, valor_total, quantidade_vendida } = req.body;
+    try {
+        await ensureTablesExist(); // Garantir que as tabelas existem
+        const result = await pool.query(
+            'INSERT INTO nota_fiscal (produto_id, data, valor_total, quantidade_vendida) VALUES ($1, $2, $3, $4) RETURNING *',
+            [produto_id, data, valor_total, quantidade_vendida]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erro ao adicionar nota fiscal' });
+    }
+});
+
 // Iniciar o servidor
 app.listen(port, () => {
     console.log(`Servidor rodando em http://localhost:${port}`);

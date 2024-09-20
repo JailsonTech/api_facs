@@ -2,6 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg');
 const cors = require('cors');
+const fs = require('fs');
+const csv = require('csv-parser');
+
 const app = express();
 const port = 3000;
 
@@ -40,6 +43,37 @@ const ensureTablesExist = async () => {
     await pool.query(query);
 };
 
+// Rota para carregar dados do CSV
+app.post('/load-data', async (req, res) => {
+    await ensureTablesExist();
+
+    // Carregar produtos
+    fs.createReadStream('produtos.csv')
+        .pipe(csv())
+        .on('data', async (row) => {
+            await pool.query(
+                'INSERT INTO produtos (nome, preco, quantidade, descricao) VALUES ($1, $2, $3, $4)',
+                [row.nome, parseFloat(row.preco.replace(',', '.')), parseInt(row.quantidade), row.descricao]
+            );
+        })
+        .on('end', async () => {
+            console.log('Produtos carregados com sucesso');
+            // Carregar notas fiscais
+            fs.createReadStream('NotaFiscal.csv')
+                .pipe(csv())
+                .on('data', async (row) => {
+                    await pool.query(
+                        'INSERT INTO nota_fiscal (produto_id, data, valor_total, quantidade_vendida) VALUES ($1, $2, $3, $4)',
+                        [parseInt(row.produto_id), row.data, parseFloat(row.valor_total.replace(',', '.')), parseInt(row.quantidade_vendida)]
+                    );
+                })
+                .on('end', () => {
+                    console.log('Notas fiscais carregadas com sucesso');
+                    res.status(200).json({ message: 'Dados carregados com sucesso!' });
+                });
+        });
+});
+
 // Rota para obter dados de produtos
 app.get('/produtos', async (req, res) => {
     try {
@@ -51,19 +85,14 @@ app.get('/produtos', async (req, res) => {
     }
 });
 
-// Rota para adicionar um produto
-app.post('/produtos', async (req, res) => {
-    const { nome, preco, quantidade, descricao } = req.body;
+// Rota para obter dados de nota fiscal
+app.get('/nota-fiscal', async (req, res) => {
     try {
-        await ensureTablesExist(); // Garantir que as tabelas existem
-        const result = await pool.query(
-            'INSERT INTO produtos (nome, preco, quantidade, descricao) VALUES ($1, $2, $3, $4) RETURNING *',
-            [nome, preco, quantidade, descricao]
-        );
-        res.status(201).json(result.rows[0]);
+        const result = await pool.query('SELECT * FROM nota_fiscal');
+        res.json(result.rows);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Erro ao adicionar produto' });
+        res.status(500).json({ error: 'Erro ao buscar notas fiscais' });
     }
 });
 

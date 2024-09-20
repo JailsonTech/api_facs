@@ -1,100 +1,87 @@
-require('dotenv').config();
-const express = require('express');
-const { Pool } = require('pg');
-const cors = require('cors');
-const app = express();
-const port = 3000;
-
-// Configurar o pool de conexão com o PostgreSQL
-const pool = new Pool({
-    user: process.env.FACS_USER,
-    host: process.env.FACS_HOST,
-    database: process.env.FACS_NAME,
-    password: process.env.FACS_PASSWORD,
-    port: process.env.FACS_PORT,
+document.addEventListener('DOMContentLoaded', () => {
+    fetchProdutos();
+    fetchCpfs();
 });
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
+async function fetchProdutos() {
+    const response = await fetch('http://localhost:3000/produtos');
+    const produtos = await response.json();
+    const select = document.getElementById('produto-select');
 
-// Função para garantir que as tabelas existam
-const ensureTablesExist = async () => {
-    const query = `
-        CREATE TABLE IF NOT EXISTS produtos (
-            id SERIAL PRIMARY KEY,
-            nome VARCHAR(255) NOT NULL,
-            preco DECIMAL(10, 2) NOT NULL,
-            quantidade INT NOT NULL,
-            descricao TEXT
-        );
-        CREATE TABLE IF NOT EXISTS nota_fiscal (
-            id SERIAL PRIMARY KEY,
-            produto_id INT REFERENCES produtos(id),
-            data DATE NOT NULL,
-            valor_total DECIMAL(10, 2) NOT NULL,
-            quantidade_vendida INT NOT NULL
-        );
-    `;
-    await pool.query(query);
-};
+    produtos.forEach(produto => {
+        const option = document.createElement('option');
+        option.value = produto.id;
+        option.textContent = produto.nome;
+        select.appendChild(option);
+    });
 
-// Rota para obter dados de produtos
-app.get('/produtos', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM produtos');
-        res.json(result.rows);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Erro ao buscar produtos' });
+    select.addEventListener('change', (e) => {
+        const selectedId = e.target.value;
+        if (selectedId) {
+            const selectedProduto = produtos.find(produto => produto.id == selectedId);
+            displayProdutoDetails(selectedProduto);
+        } else {
+            document.getElementById('produto-details').innerHTML = '';
+        }
+    });
+}
+
+function displayProdutoDetails(produto) {
+    const detailsDiv = document.getElementById('produto-details');
+    if (typeof produto.preco === 'number') {
+        detailsDiv.innerHTML = `
+            <h2>Detalhes do Produto</h2>
+            <p><strong>Nome:</strong> ${produto.nome}</p>
+            <p><strong>Preço:</strong> R$ ${produto.preco.toFixed(2)}</p>
+            <p><strong>Quantidade:</strong> ${produto.quantidade}</p>
+            <p><strong>Descrição:</strong> ${produto.descricao}</p>
+        `;
+    } else {
+        detailsDiv.innerHTML = `<p>Erro: preço inválido.</p>`;
     }
-});
+}
 
-// Rota para adicionar um produto
-app.post('/produtos', async (req, res) => {
-    const { nome, preco, quantidade, descricao } = req.body;
-    try {
-        await ensureTablesExist(); // Garantir que as tabelas existem
-        const result = await pool.query(
-            'INSERT INTO produtos (nome, preco, quantidade, descricao) VALUES ($1, $2, $3, $4) RETURNING *',
-            [nome, preco, quantidade, descricao]
-        );
-        res.status(201).json(result.rows[0]);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Erro ao adicionar produto' });
-    }
-});
+async function fetchCpfs() {
+    const response = await fetch('http://localhost:3000/nota-fiscal');
+    const notasFiscais = await response.json();
+    const select = document.getElementById('cpf-select');
 
-// Rota para obter notas fiscais
-app.get('/nota-fiscal', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM nota_fiscal');
-        res.json(result.rows);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Erro ao buscar notas fiscais' });
-    }
-});
+    const uniqueCpfs = [...new Set(notasFiscais.map(nota => nota.cpf_cnpj))];
+    uniqueCpfs.forEach(cpf => {
+        const option = document.createElement('option');
+        option.value = cpf;
+        option.textContent = cpf;
+        select.appendChild(option);
+    });
 
-// Rota para adicionar uma nota fiscal
-app.post('/nota-fiscal', async (req, res) => {
-    const { produto_id, data, valor_total, quantidade_vendida } = req.body;
-    try {
-        await ensureTablesExist(); // Garantir que as tabelas existem
-        const result = await pool.query(
-            'INSERT INTO nota_fiscal (produto_id, data, valor_total, quantidade_vendida) VALUES ($1, $2, $3, $4) RETURNING *',
-            [produto_id, data, valor_total, quantidade_vendida]
-        );
-        res.status(201).json(result.rows[0]);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Erro ao adicionar nota fiscal' });
-    }
-});
+    select.addEventListener('change', (e) => {
+        const selectedCpf = e.target.value;
+        if (selectedCpf) {
+            const filteredNotas = notasFiscais.filter(nota => nota.cpf_cnpj === selectedCpf);
+            displayNotaFiscalDetails(filteredNotas);
+        } else {
+            document.getElementById('nota-fiscal-details').innerHTML = '';
+        }
+    });
+}
 
-// Iniciar o servidor
-app.listen(port, () => {
-    console.log(`Servidor rodando em http://localhost:${port}`);
-});
+function displayNotaFiscalDetails(notas) {
+    const detailsDiv = document.getElementById('nota-fiscal-details');
+    detailsDiv.innerHTML = '<h2>Detalhes da Nota Fiscal</h2>';
+
+    notas.forEach(nota => {
+        if (typeof nota.valor_total === 'number') {
+            detailsDiv.innerHTML += `
+                <p><strong>Nº NF-e:</strong> ${nota.numero_nfe}</p>
+                <p><strong>Série:</strong> ${nota.serie}</p>
+                <p><strong>Status:</strong> ${nota.status}</p>
+                <p><strong>Data de Emissão:</strong> ${nota.data_emissao}</p>
+                <p><strong>Valor Total:</strong> R$ ${nota.valor_total.toFixed(2)}</p>
+                <p><strong>Chave DANFE:</strong> ${nota.chave_danfe}</p>
+                <hr />
+            `;
+        } else {
+            detailsDiv.innerHTML += `<p>Erro: valor total inválido.</p>`;
+        }
+    });
+}

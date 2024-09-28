@@ -1,0 +1,17 @@
+[
+  {
+    "nome": "jogo1",
+    "ano": "2001",
+    "categoria": "aventura"
+  },
+  {
+    "nome": "jogo2",
+    "ano": "2002",
+    "categoria": "ação"
+  },
+  {
+    "nome": "jogo3",
+    "ano": "2003",
+    "categoria": "shootler"
+  }
+]

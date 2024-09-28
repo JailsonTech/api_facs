@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Jogos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Lista de Jogos</h1>
+
+    <form id="jogoForm">
+        <input type="text" id="nome" placeholder="Nome do Jogo" required>
+        <input type="number" id="ano" placeholder="Ano" required>
+        <input type="text" id="categoria" placeholder="Categoria" required>
+        <button type="submit" id="salvarButton">Salvar Jogo</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Ano</th>
+                <th>Categoria</th>
+            </tr>
+        </thead>
+        <tbody id="jogosTable">
+            <!-- Os dados dos jogos serão inseridos aqui -->
+        </tbody>
+    </table>
+
+    <script src="jogos.js"></script>
+    <script src="salvarJogos.js"></script>
+</body>
+</html>
